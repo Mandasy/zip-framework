@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'zip-framework' target in the 'zip-framework' project.
+//
+
+#ifdef __OBJC__
+    #import <Cocoa/Cocoa.h>
+#endif
