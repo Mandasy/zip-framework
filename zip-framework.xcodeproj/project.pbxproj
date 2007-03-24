@@ -44,6 +44,7 @@
 		A95FC4250BB5D488006328A2 /* ZipArchiveTest.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = ZipArchiveTest.m; sourceTree = "<group>"; };
 		A95FC43D0BB5DA1A006328A2 /* test-archive1.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "test-archive1.zip"; sourceTree = "<group>"; };
 		A95FC44B0BB5DB5D006328A2 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = /System/Library/Frameworks/SenTestingKit.framework; sourceTree = "<absolute>"; };
+		A95FC4AB0BB5EC48006328A2 /* COPYING */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = COPYING; sourceTree = "<group>"; };
 		D2F7E79907B2D74100F64583 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
@@ -84,6 +85,7 @@
 				089C1665FE841158C02AAC07 /* Resources */,
 				0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */,
 				034768DFFF38A50411DB9C8B /* Products */,
+				A95FC4AB0BB5EC48006328A2 /* COPYING */,
 			);
 			name = "zip-framework";
 			sourceTree = "<group>";
