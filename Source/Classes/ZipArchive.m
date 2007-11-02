@@ -28,6 +28,8 @@
 #import <stdlib.h>
 #import <stdio.h>
 
+#import "zlib.h"
+
 #import "ZipArchive.h"
 #import "ZipArchive+PrivateAPI.h"
 
@@ -115,6 +117,18 @@ void readCDFileHeader(CDFileHeader *header, FILE *fp) {
 
 int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	ZipEntryIO *entry_io = (ZipEntryIO *)cookie;
+	
+	switch (entry_io->zip_header->compression) {
+		case NoCompression:
+			NSLog(@"No compression");
+			break;
+		case Deflated:
+			NSLog(@"Decrompress using zlib");
+			break;
+		default:
+			NSLog(@"Unknown compression");
+	}
+	
 	return [entry_io->archive readFromEntry:entry_io->name buffer:buf length:len];
 }
 
@@ -162,6 +176,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	entry_io->archive = self;
 	entry_io->name = [fileName retain];
 	entry_io->pos = 0;
+	entry_io->zip_header = &(file_headers[[entries indexOfObject:fileName]]);
 
 	return fropen(entry_io, ZipArchive_entry_do_read);
 }
@@ -191,24 +206,25 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	fseek(fp, trailerPosition, SEEK_SET);
 	fread(&trailer, sizeof(CDERecord), 1, fp);
 	
-	CDFileHeader header;
-	unsigned int files = CFSwapInt16LittleToHost(trailer.nr_files);
+	file_count = CFSwapInt16LittleToHost(trailer.nr_files);
 	unsigned int cd_pos = CFSwapInt32LittleToHost(trailer.cd_offset);
+	
+	file_headers = (CDFileHeader *) malloc(sizeof(CDFileHeader) * file_count);
 	
 	unsigned int i;
 	char name[256];
 	fseek(fp, cd_pos, SEEK_SET);
-	for (i=0; i<files; i++) {
+	for (i=0; i<file_count; i++) {
 		// read header
 		// fread(&header, sizeof(CDFileHeader), 1, fp);
-		readCDFileHeader(&header, fp);
+		readCDFileHeader(&(file_headers[i]), fp);
 		
-		fread(&name, header.name_len, 1, fp);
-		name[header.name_len] = '\0';
+		fread(&name, file_headers[i].name_len, 1, fp);
+		name[file_headers[i].name_len] = '\0';
 		[entries addObject:[NSString stringWithUTF8String:name]];
 		
-		fseek(fp, header.extra_len, SEEK_CUR); // skip over extra field
-		fseek(fp, header.comment_len, SEEK_CUR); // skip over current
+		fseek(fp, file_headers[i].extra_len, SEEK_CUR); // skip over extra field
+		fseek(fp, file_headers[i].comment_len, SEEK_CUR); // skip over current
 	}
 	
 	fclose(fp);
@@ -217,6 +233,13 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 - (int) readFromEntry:(NSString *)name buffer:(char *)buf length:(int)length {
 	NSLog(@"Read from %@", name);
 	
+	
 	return -1;
+}
+
+- (void) dealloc {
+	
+	
+	[super dealloc];
 }
 @end
