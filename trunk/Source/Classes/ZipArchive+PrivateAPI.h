@@ -25,58 +25,12 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define ZIP_DISK_TRAILER	(0x06054b50)
-#define ZIP_BUFF_SIZE	512
-
-// force structs to minimal size to be able to read from file
-#pragma pack(1)
-
-// TODO: read these structs field by field, not as a whole, so
-//		 we can remove the pragma pack
-
-/* central directory end record */
-typedef struct cde_record {
-	uint32_t signature;
-	uint16_t curr_disk;
-	uint16_t cd_disk;
-	uint16_t nr_files_disk;
-	uint16_t nr_files;
-	uint32_t cd_len;
-	uint32_t cd_offset;
-	uint16_t comment_len;
-} CDERecord;
-
-/* Central directory file header */
-typedef struct cd_file_record {
-	uint32_t signature; /* 0x02014b50 */
-	uint16_t made_by;
-	uint16_t min_version;
-	uint16_t flag;
-	uint16_t compression;
-	uint16_t last_mod_time;
-	uint16_t last_mod_date;
-	uint32_t crc;
-	uint32_t compressed; // compressed size
-	uint32_t uncompressed; // uncrompressed size
-	uint16_t name_len;
-	uint16_t extra_len;
-	uint16_t comment_len;
-	uint16_t disk_start;
-	uint16_t int_attr;
-	uint32_t ext_attr;
-	uint32_t local_offset;
-	
-	/* file name (variable size) */
-	/* extra field (variable size) */
-	/* file comment (variable size) */
-} CDFileHeader;
-
-#pragma pack()
-
+/* Struct used as cookie to keep information about the file being read */
 typedef struct {
 	ZipArchive *archive;
 	NSString *name;
 	int pos;
+	CDFileHeader *zip_header;
 } ZipEntryIO;
 
 /* Utility functions for reading bytes from little-endian based file */

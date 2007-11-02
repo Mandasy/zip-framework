@@ -27,9 +27,12 @@
 
 #import <Cocoa/Cocoa.h>
 
+#import "ZipStructure.h"
 
 @interface ZipArchive : NSObject {
+	unsigned int file_count;
 	NSString *file;
+	CDFileHeader *file_headers;
 	NSMutableArray *entries;
 }
 
