@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8B0B80D50CDB80C800B2CD96 /* ZipStructure.h in Headers */ = {isa = PBXBuildFile; fileRef = 8B0B80D40CDB80C800B2CD96 /* ZipStructure.h */; };
 		8DC2EF530486A6940098B216 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C1666FE841158C02AAC07 /* InfoPlist.strings */; };
 		8DC2EF570486A6940098B216 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7B1FEA5585E11CA2CBB /* Cocoa.framework */; };
+		A922D3850CDCA361009325F9 /* ZipStructure.h in Headers */ = {isa = PBXBuildFile; fileRef = A922D3840CDCA361009325F9 /* ZipStructure.h */; };
 		A95FC3FB0BB5CEAE006328A2 /* ZipArchive.h in Headers */ = {isa = PBXBuildFile; fileRef = A95FC3F80BB5CEAE006328A2 /* ZipArchive.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A95FC3FC0BB5CEAE006328A2 /* ZipArchive.m in Sources */ = {isa = PBXBuildFile; fileRef = A95FC3F90BB5CEAE006328A2 /* ZipArchive.m */; };
 		A95FC4260BB5D488006328A2 /* ZipArchiveTest.m in Sources */ = {isa = PBXBuildFile; fileRef = A95FC4250BB5D488006328A2 /* ZipArchiveTest.m */; };
@@ -34,9 +34,9 @@
 		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7B1FEA5585E11CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		32DBCF5E0370ADEE00C91783 /* zip-framework_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "zip-framework_Prefix.pch"; path = "Source/zip-framework_Prefix.pch"; sourceTree = "<group>"; };
-		8B0B80D40CDB80C800B2CD96 /* ZipStructure.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZipStructure.h; sourceTree = "<group>"; };
 		8DC2EF5A0486A6940098B216 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8DC2EF5B0486A6940098B216 /* Zip.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Zip.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A922D3840CDCA361009325F9 /* ZipStructure.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZipStructure.h; sourceTree = "<group>"; };
 		A95FC3F80BB5CEAE006328A2 /* ZipArchive.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ZipArchive.h; sourceTree = "<group>"; };
 		A95FC3F90BB5CEAE006328A2 /* ZipArchive.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = ZipArchive.m; sourceTree = "<group>"; };
 		A95FC3FA0BB5CEAE006328A2 /* ZipArchive+PrivateAPI.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = "ZipArchive+PrivateAPI.h"; sourceTree = "<group>"; };
@@ -118,7 +118,7 @@
 				A95FC3F80BB5CEAE006328A2 /* ZipArchive.h */,
 				A95FC3F90BB5CEAE006328A2 /* ZipArchive.m */,
 				A95FC3FA0BB5CEAE006328A2 /* ZipArchive+PrivateAPI.h */,
-				8B0B80D40CDB80C800B2CD96 /* ZipStructure.h */,
+				A922D3840CDCA361009325F9 /* ZipStructure.h */,
 			);
 			name = Classes;
 			path = Source/Classes;
@@ -179,7 +179,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A95FC3FB0BB5CEAE006328A2 /* ZipArchive.h in Headers */,
-				8B0B80D50CDB80C800B2CD96 /* ZipStructure.h in Headers */,
+				A922D3850CDCA361009325F9 /* ZipStructure.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

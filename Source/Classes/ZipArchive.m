@@ -167,6 +167,18 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	return entries;
 }
 
+- (NSDictionary *) infoForEntry:(NSString *)fileName {
+	NSEnumerator *entryEnum = [[self entries] objectEnumerator];
+	NSDictionary *entryInfo;
+	while ((entryInfo = [entryEnum nextObject]) != nil) {
+		if ([[entryInfo objectForKey:@"ZipEntryName"] isEqualToString:fileName]) {
+			break;
+		}
+	}
+	
+	return entryInfo;
+}
+
 - (FILE *) entryForName:(NSString *)fileName {
 	if (![[self entries] containsObject:fileName]) {
 		return nil;
@@ -221,7 +233,12 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 		
 		fread(&name, file_headers[i].name_len, 1, fp);
 		name[file_headers[i].name_len] = '\0';
-		[entries addObject:[NSString stringWithUTF8String:name]];
+		
+		NSMutableDictionary *fileInfo = [NSMutableDictionary dictionary];
+		[fileInfo setObject:[NSString stringWithUTF8String:name] forKey:@"ZipEntryName"];
+		[fileInfo setObject:[NSNumber numberWithInt:file_headers[i].uncompressed] forKey:@"ZipEntryUncompressedSize"];
+		
+		[entries addObject:fileInfo];
 		
 		fseek(fp, file_headers[i].extra_len, SEEK_CUR); // skip over extra field
 		fseek(fp, file_headers[i].comment_len, SEEK_CUR); // skip over current
@@ -232,7 +249,6 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 
 - (int) readFromEntry:(NSString *)name buffer:(char *)buf length:(int)length {
 	NSLog(@"Read from %@", name);
-	
 	
 	return -1;
 }

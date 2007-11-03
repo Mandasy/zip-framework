@@ -43,6 +43,7 @@
 
 - (int) numberOfEntries;
 - (NSArray *) entries;
+- (NSDictionary *) infoForEntry:(NSString *)fileName;
 
 - (FILE *) entryForName:(NSString *)fileName;
 @end

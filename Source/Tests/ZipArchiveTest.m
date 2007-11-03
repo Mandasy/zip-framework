@@ -52,6 +52,7 @@
 }
 
 - (void) testZipEntryInfo {
+	NSMutableArray *filesInTest = [NSMutableArray arrayWithObjects:@"test-archive/", @"test-archive/README", @"test-archive/test.txt", nil];
 	NSEnumerator *entries = [[zip entries] objectEnumerator];
 	id info;
 	while ((info = [entries nextObject]) != nil) {
@@ -60,21 +61,32 @@
 		if ([info isKindOfClass:[NSDictionary class]]) {
 			NSDictionary *infoDict = (NSDictionary *)info;
 			NSString *name = [infoDict objectForKey:@"ZipEntryName"];
-			if ([name isEqualToString:@"test-archive/README"]) {
-				// some tests for test-archive/README
-			}
+			
+			STAssertTrue([filesInTest containsObject:name], @"Filename should be known");
+			
+			[filesInTest removeObject:name];
 		}
 	}
+	
+	// check no more files in test
+	STAssertEquals((unsigned)0, [filesInTest count], @"All files should be encountered when requesting entry info");
+}
+
+- (void) testZipEntryInfoShorthand {
+	NSDictionary *info = [zip infoForEntry:@"test-archive/README"];
+	
+	STAssertEqualObjects([info objectForKey:@"ZipEntryName"], @"test-archive/README", @"Entry name");
+	STAssertEqualObjects([info objectForKey:@"ZipEntryUncompressedSize"], [NSNumber numberWithInt:64], @"Uncompressed entry size");
 }
 
 - (void) testZipEntryReading {
 	FILE *readmeFile;
 	char buf[512];
 	
-	STAssertNil([zip entryForName:@"non-exising/file.txt"], @"Requesting a non-existing file");
+	STAssertTrue([zip entryForName:@"non-exising/file.txt"] == NULL, @"Requesting a non-existing file");
 	
 	readmeFile = [zip entryForName:@"test-archive/README"];
-	STAssertNotNil(readmeFile, @"README file should be available in zip");
+	STAssertFalse(readmeFile == NULL, @"README file should be available in zip");
 	
 	// read from file, assert contents
 	int total_read = 0;
