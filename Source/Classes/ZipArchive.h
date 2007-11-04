@@ -33,7 +33,7 @@
 	unsigned int file_count;
 	NSString *file;
 	CDFileHeader *file_headers;
-	NSMutableArray *entries;
+	NSMutableDictionary *entries;
 }
 
 - (id) initWithFile:(NSString *)location;

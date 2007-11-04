@@ -164,7 +164,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 		[self readEntries];
 	}
 	
-	return entries;
+	return [entries allValues];
 }
 
 - (NSDictionary *) infoForEntry:(NSString *)fileName {
@@ -188,7 +188,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	entry_io->archive = self;
 	entry_io->name = [fileName retain];
 	entry_io->pos = 0;
-	entry_io->zip_header = &(file_headers[[entries indexOfObject:fileName]]);
+	entry_io->zip_header = &(file_headers[[[[entries objectForKey:fileName] objectForKey:@"ZipEntryPositionInArchive"] intValue]]);
 
 	return fropen(entry_io, ZipArchive_entry_do_read);
 }
@@ -197,7 +197,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 #pragma mark -
 #pragma mark Private method implementation
 - (void) readEntries {
-	entries = [[NSMutableArray alloc] init];
+	entries = [[NSMutableDictionary alloc] init];
 
 	CDERecord trailer;
 	int filesize, trailerPosition;
@@ -237,9 +237,10 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 		NSMutableDictionary *fileInfo = [NSMutableDictionary dictionary];
 		[fileInfo setObject:[NSString stringWithUTF8String:name] forKey:@"ZipEntryName"];
 		[fileInfo setObject:[NSNumber numberWithInt:file_headers[i].uncompressed] forKey:@"ZipEntryUncompressedSize"];
+		[fileInfo setObject:[NSNumber numberWithInt:i] forKey:@"ZipEntryPositionInArchive"];
 		
-		[entries addObject:fileInfo];
-		
+		[entries setObject:fileInfo forKey:[NSString stringWithUTF8String:name]];
+						
 		fseek(fp, file_headers[i].extra_len, SEEK_CUR); // skip over extra field
 		fseek(fp, file_headers[i].comment_len, SEEK_CUR); // skip over current
 	}
