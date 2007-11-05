@@ -46,6 +46,30 @@ typedef struct cde_record {
 	uint16_t comment_len;
 } CDERecord;
 
+typedef struct local_file_header {
+	uint32_t signature; /* 0x04034b50 */
+	uint16_t min_version;
+	uint16_t flag;
+	uint16_t compression;
+	uint16_t last_mod_time;
+	uint16_t last_mod_date;
+	uint32_t crc32;
+	uint32_t compressed;
+	uint32_t uncompressed;
+	uint16_t name_len;
+	uint16_t extra_len;
+	
+	/* file name (variable size) */
+	char *name;
+	/* extra field (variable size) */
+} FileHeader;
+
+typedef struct data_descriptor {
+	uint32_t crc32;
+	uint32_t compressed;
+	uint32_t uncompressed;
+} DataDescriptor;
+
 /* Central directory file header */
 typedef struct cd_file_record {
 	uint32_t signature; /* 0x02014b50 */

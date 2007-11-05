@@ -96,6 +96,8 @@ int zipDiskTrailerInFile(FILE *fp, int size) {
 }
 
 void readCDFileHeader(CDFileHeader *header, FILE *fp) {
+	// TODO: read header in single read statement
+
 	header->signature = JKReadUInt32(fp);
 	header->made_by = JKReadUInt16(fp);
 	header->min_version = JKReadUInt16(fp);
@@ -124,6 +126,32 @@ void readCDFileHeader(CDFileHeader *header, FILE *fp) {
 	
 	fseek(fp, header->extra_len, SEEK_CUR); // skip over extra field
 	fseek(fp, header->comment_len, SEEK_CUR); // skip over current
+}
+
+void readLocalFileHeader(FileHeader *header, FILE *fp) {
+	// TODO: read header in single read statement
+
+	header->signature = JKReadUInt32(fp);
+	header->min_version = JKReadUInt16(fp);
+	header->flag = JKReadUInt16(fp);
+	header->compression = JKReadUInt16(fp);
+	header->last_mod_time = JKReadUInt16(fp);
+	header->last_mod_date = JKReadUInt16(fp);
+	header->crc32 = JKReadUInt32(fp);
+	header->compressed = JKReadUInt32(fp);
+	header->uncompressed = JKReadUInt32(fp);
+	header->name_len = JKReadUInt32(fp);
+	header->extra_len = JKReadUInt32(fp);
+	
+	if (header->name_len > 0) {
+			header->name = (char *) malloc(sizeof(char) * (header->name_len + 1));
+			fread(header->name, header->name_len, 1, fp);
+			header->name[header->name_len] = '\0';
+	} else {
+		header->name = nil;
+	}
+	
+	fseek(fp, header->extra_len, SEEK_CUR); // ignore extra field
 }
 
 int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
@@ -172,18 +200,26 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 }
 
 - (FILE *) entryForName:(NSString *)fileName {
-	CDFileHeader *cdFileHeader = [self CDFileHeaderForFile:fileName];
-	if (cdFileHeader == nil) {
+	CDFileHeader *cd_header = [self CDFileHeaderForFile:fileName];
+	if (cd_header == nil) {
 		NSLog(@"file not found");
 		return NULL;
 	} else {
-		NSLog(@"File found: %s", cdFileHeader->name);
+		NSLog(@"File found: %s", cd_header->name);
 	}
 	
 	ZipEntryInfo *entry_io = (ZipEntryInfo *) malloc(sizeof(ZipEntryInfo));
+	entry_io->archive = self; // keep track of ziparchive object
+	entry_io->fp = fopen([file UTF8String], "r");
+	entry_io->read_pos = 0;
+	// TODO: check for fp success
 	
-	// keep track of ziparchive object
-	entry_io->archive = self;
+	fseek(entry_io->fp, cd_header->local_offset, SEEK_SET);
+	
+	readLocalFileHeader(&(entry_io->file_header), entry_io->fp);
+	
+	// set offset in file to first compressed data byte
+	entry_io->offset_in_file = ftell(entry_io->fp);
 	
 	// stream for decompression
 	entry_io->stream = (z_streamp) malloc(sizeof(z_streamp));
@@ -192,8 +228,6 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	entry_io->stream->opaque = 0;
 	entry_io->stream->next_in = Z_NULL;
 	entry_io->stream->avail_in = 0;
-	
-	// file stream to zip archive
 	
 	int result = inflateInit(entry_io->stream);
 	if (result != Z_OK) {
@@ -214,7 +248,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 - (void) readCentralDirectory {
 	CDERecord trailer;
 	int filesize, trailerPosition;
-	FILE *fp = fopen([file UTF8String], "rw");
+	FILE *fp = fopen([file UTF8String], "r");
 	
 	fseek(fp, 0, SEEK_END);
 	filesize = (int) ftell(fp);
@@ -247,13 +281,24 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	fclose(fp);
 }
 
-- (int) readFromEntry:(ZipEntryInfo *)entry_io buffer:(char *)buf length:(int)length {
-	/*
-		entry_io->stream->next_out = buf;
-		entry_io->stream->avail_out = length;
-	*/
+- (int) readFromEntry:(ZipEntryInfo *)entry_io buffer:(char *)buf_out length:(int)len_out {
+	char buf_read[512];
+	int num_read;
+
+	// goto correct position in zip archive
+	fseek(entry_io->fp, entry_io->offset_in_file + entry_io->read_pos, SEEK_SET);
+
+	entry_io->stream->next_out = buf_out; // TODO: correct warning
+	entry_io->stream->avail_out = len_out;
 	
-	inflate(entry_io->stream, 0);
+	while (entry_io->stream->avail_out > 0) {
+		num_read = fread(&buf_read, sizeof(char), 512, entry_io->fp);
+		
+		entry_io->stream->next_in = buf_read; // TODO: correct warning
+		entry_io->stream->avail_in = num_read;
+		  
+		inflate(entry_io->stream, 0);
+	}
 	
 	return -1;
 }
