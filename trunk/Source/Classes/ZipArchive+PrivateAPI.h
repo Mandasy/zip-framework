@@ -26,13 +26,16 @@
  */
 
 #import "ZipStructure.h"
+#import <stdio.h>
 
 /* Struct used as cookie to keep information about the file being read */
 typedef struct {
 	ZipArchive *archive;
-	NSString *name;
-	unsigned int offset_in_file;
+	FILE *fp; // file pointer for reading
+	FileHeader file_header;
+	unsigned int offset_in_file; // start data byte
 	z_streamp stream;
+	unsigned int read_pos;
 } ZipEntryInfo;
 
 /* Utility functions for reading bytes from little-endian based file */
