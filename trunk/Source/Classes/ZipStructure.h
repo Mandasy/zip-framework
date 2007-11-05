@@ -67,6 +67,7 @@ typedef struct cd_file_record {
 	uint32_t local_offset;
 	
 	/* file name (variable size) */
+	char *name;
 	/* extra field (variable size) */
 	/* file comment (variable size) */
 } CDFileHeader;

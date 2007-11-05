@@ -31,9 +31,9 @@
 typedef struct {
 	ZipArchive *archive;
 	NSString *name;
-	int pos;
-	CDFileHeader *zip_header;
-} ZipEntryIO;
+	unsigned int offset_in_file;
+	z_streamp stream;
+} ZipEntryInfo;
 
 /* Utility functions for reading bytes from little-endian based file */
 uint16_t JKReadUInt16(FILE *fp);
@@ -57,15 +57,13 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len);
 
 @interface ZipArchive (PrivateAPI)
 /**
- * Read all entries from the zip central directory
- */
-- (void) readEntries;
-
-/**
  * Delegate method for the virtual zip file stream. Reads the specified number
  * of bytes form the requested file in the ZipArchive.
  */
-- (int) readFromEntry:(NSString *)name buffer:(char *)buf length:(int)length;
+- (int) readFromEntry:(ZipEntryInfo *)entry_io buffer:(char *)buf length:(int)length;
+
+- (void) readCentralDirectory;
+- (CDFileHeader *) CDFileHeaderForFile:(NSString *)name;
 @end
 
 
