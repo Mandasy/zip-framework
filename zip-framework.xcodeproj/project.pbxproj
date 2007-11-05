@@ -330,6 +330,7 @@
 				GCC_PREFIX_HEADER = "Source/zip-framework_Prefix.pch";
 				INFOPLIST_FILE = Resources/Info.plist;
 				INSTALL_PATH = "$(HOME)/Library/Frameworks";
+				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = Zip;
 				WRAPPER_EXTENSION = framework;
 				ZERO_LINK = YES;
@@ -352,6 +353,7 @@
 				GCC_PREFIX_HEADER = "Source/zip-framework_Prefix.pch";
 				INFOPLIST_FILE = Resources/Info.plist;
 				INSTALL_PATH = "$(HOME)/Library/Frameworks";
+				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = Zip;
 				WRAPPER_EXTENSION = framework;
 			};

@@ -113,23 +113,21 @@ void readCDFileHeader(CDFileHeader *header, FILE *fp) {
 	header->int_attr = JKReadUInt16(fp);
 	header->ext_attr = JKReadUInt32(fp);
 	header->local_offset = JKReadUInt32(fp);
+	
+	if (header->name_len > 0) {
+		header->name = (char *) malloc(sizeof(char) * (header->name_len + 1));
+		fread(header->name, header->name_len, 1, fp);
+		header->name[header->name_len] = '\0';
+	} else {
+		header->name = nil;
+	}
+	
+	fseek(fp, header->extra_len, SEEK_CUR); // skip over extra field
+	fseek(fp, header->comment_len, SEEK_CUR); // skip over current
 }
 
 int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
-	ZipEntryIO *entry_io = (ZipEntryIO *)cookie;
-	
-	switch (entry_io->zip_header->compression) {
-		case NoCompression:
-			NSLog(@"No compression");
-			break;
-		case Deflated:
-			NSLog(@"Decrompress using zlib");
-			break;
-		default:
-			NSLog(@"Unknown compression");
-	}
-	
-	return [entry_io->archive readFromEntry:entry_io->name buffer:buf length:len];
+	return [((ZipEntryInfo *)cookie)->archive readFromEntry:(ZipEntryInfo *)cookie buffer:buf length:len];
 }
 
 @implementation ZipArchive
@@ -138,6 +136,8 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	
 	if (self) {
 		file = location;
+		central_directory = nil;
+		file_count = 0;
 	}
 	
 	return self;
@@ -152,53 +152,66 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 }
 
 - (int) numberOfEntries {
-	if (entries == nil) {
-		[self readEntries];
+	if (central_directory == nil) {
+		[self readCentralDirectory];
 	}
 
-	return (entries == nil) ? -1 : [entries count];
+	return file_count;
 }
 
 - (NSArray *) entries {
-	if (entries == nil) {
-		[self readEntries];
+	if (central_directory == nil) {
+		[self readCentralDirectory];
 	}
-	
-	return [entries allValues];
+
+	return file_names;
 }
 
 - (NSDictionary *) infoForEntry:(NSString *)fileName {
-	NSEnumerator *entryEnum = [[self entries] objectEnumerator];
-	NSDictionary *entryInfo;
-	while ((entryInfo = [entryEnum nextObject]) != nil) {
-		if ([[entryInfo objectForKey:@"ZipEntryName"] isEqualToString:fileName]) {
-			break;
-		}
-	}
-	
-	return entryInfo;
+	return nil;
 }
 
 - (FILE *) entryForName:(NSString *)fileName {
-	if (![[self entries] containsObject:fileName]) {
-		return nil;
+	CDFileHeader *cdFileHeader = [self CDFileHeaderForFile:fileName];
+	if (cdFileHeader == nil) {
+		NSLog(@"file not found");
+		return NULL;
+	} else {
+		NSLog(@"File found: %s", cdFileHeader->name);
 	}
 	
-	ZipEntryIO *entry_io = (ZipEntryIO *) malloc(sizeof(ZipEntryIO));
+	ZipEntryInfo *entry_io = (ZipEntryInfo *) malloc(sizeof(ZipEntryInfo));
+	
+	// keep track of ziparchive object
 	entry_io->archive = self;
-	entry_io->name = [fileName retain];
-	entry_io->pos = 0;
-	entry_io->zip_header = &(file_headers[[[[entries objectForKey:fileName] objectForKey:@"ZipEntryPositionInArchive"] intValue]]);
-
-	return fropen(entry_io, ZipArchive_entry_do_read);
+	
+	// stream for decompression
+	entry_io->stream = (z_streamp) malloc(sizeof(z_streamp));
+	entry_io->stream->zalloc = Z_NULL;
+	entry_io->stream->zfree = Z_NULL; // use default
+	entry_io->stream->opaque = 0;
+	entry_io->stream->next_in = Z_NULL;
+	entry_io->stream->avail_in = 0;
+	
+	// file stream to zip archive
+	
+	int result = inflateInit(entry_io->stream);
+	if (result != Z_OK) {
+		NSLog(@"Error setting up decompression stream");
+		
+		// TODO: free entry_io & stream
+		
+		return NULL;
+	}
+	
+	// TODO: setup fclose handler
+	return fropen((void *)entry_io, ZipArchive_entry_do_read);
 }
 
 
 #pragma mark -
 #pragma mark Private method implementation
-- (void) readEntries {
-	entries = [[NSMutableDictionary alloc] init];
-
+- (void) readCentralDirectory {
 	CDERecord trailer;
 	int filesize, trailerPosition;
 	FILE *fp = fopen([file UTF8String], "rw");
@@ -212,50 +225,69 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 		return;
 	}
 	
+	file_names = [[NSMutableArray alloc] init];
+	
 	NSLog(@"Trailer found at: %d", trailerPosition);
 	
-			
 	fseek(fp, trailerPosition, SEEK_SET);
 	fread(&trailer, sizeof(CDERecord), 1, fp);
 	
 	file_count = CFSwapInt16LittleToHost(trailer.nr_files);
 	unsigned int cd_pos = CFSwapInt32LittleToHost(trailer.cd_offset);
 	
-	file_headers = (CDFileHeader *) malloc(sizeof(CDFileHeader) * file_count);
+	central_directory = (CDFileHeader *) malloc(sizeof(CDFileHeader) * file_count);
 	
 	unsigned int i;
-	char name[256];
 	fseek(fp, cd_pos, SEEK_SET);
 	for (i=0; i<file_count; i++) {
-		// read header
-		// fread(&header, sizeof(CDFileHeader), 1, fp);
-		readCDFileHeader(&(file_headers[i]), fp);
-		
-		fread(&name, file_headers[i].name_len, 1, fp);
-		name[file_headers[i].name_len] = '\0';
-		
-		NSMutableDictionary *fileInfo = [NSMutableDictionary dictionary];
-		[fileInfo setObject:[NSString stringWithUTF8String:name] forKey:@"ZipEntryName"];
-		[fileInfo setObject:[NSNumber numberWithInt:file_headers[i].uncompressed] forKey:@"ZipEntryUncompressedSize"];
-		[fileInfo setObject:[NSNumber numberWithInt:i] forKey:@"ZipEntryPositionInArchive"];
-		
-		[entries setObject:fileInfo forKey:[NSString stringWithUTF8String:name]];
-						
-		fseek(fp, file_headers[i].extra_len, SEEK_CUR); // skip over extra field
-		fseek(fp, file_headers[i].comment_len, SEEK_CUR); // skip over current
+		readCDFileHeader(&(central_directory[i]), fp);
+		[file_names addObject:[NSString stringWithUTF8String:central_directory[i].name]];
 	}
 	
 	fclose(fp);
 }
 
-- (int) readFromEntry:(NSString *)name buffer:(char *)buf length:(int)length {
-	NSLog(@"Read from %@", name);
+- (int) readFromEntry:(ZipEntryInfo *)entry_io buffer:(char *)buf length:(int)length {
+	/*
+		entry_io->stream->next_out = buf;
+		entry_io->stream->avail_out = length;
+	*/
+	
+	inflate(entry_io->stream, 0);
 	
 	return -1;
 }
 
-- (void) dealloc {
+- (CDFileHeader *) CDFileHeaderForFile:(NSString *)fileName {
+	if (central_directory == nil) {
+		[self readCentralDirectory];
+	}
+
+	int i;
+	const char *name = [fileName UTF8String];
 	
+	for (i=0; i<file_count; i++) {
+		if (strncmp(name, central_directory[i].name, strlen(name)) == 0) {
+			return &(central_directory[i]);
+		}
+	}
+	
+	return nil;
+}
+
+- (void) dealloc {
+	if (central_directory != NULL) {
+		int i;
+		for (i=0; i<file_count; i++) {
+			if (central_directory[i].name != nil) {
+				free(central_directory[i].name);
+			}
+		}
+		free(central_directory);
+	}
+	
+	
+	[file_names release];
 	
 	[super dealloc];
 }

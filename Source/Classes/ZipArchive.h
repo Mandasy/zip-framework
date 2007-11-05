@@ -30,10 +30,11 @@
 #import "ZipStructure.h"
 
 @interface ZipArchive : NSObject {
-	unsigned int file_count;
 	NSString *file;
-	CDFileHeader *file_headers;
-	NSMutableDictionary *entries;
+	NSMutableArray *file_names;
+	
+	int file_count;
+	CDFileHeader *central_directory; // array of CDFileHeaders
 }
 
 - (id) initWithFile:(NSString *)location;
