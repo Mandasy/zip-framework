@@ -12,6 +12,9 @@ FILE *fp = [zip entryForName:@"README.txt"]; // open stream to file README.txt i
 if (!fp) {
     printf("File does not exist in archive");
 }
+
+NSArray *allEntries = [zip entries];
+// for example: [@"README", @"COPYING", @"src/", @"src/main.c"]
 }}}
 
 Please enter code examples on how you would want to use this framework in the comments below.
