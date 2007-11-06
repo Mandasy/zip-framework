@@ -36,6 +36,8 @@ typedef struct {
 	unsigned int offset_in_file; // start data byte
 	z_streamp stream;
 	unsigned int read_pos;
+	int compressed_size;
+	int uncompressed_size;
 } ZipEntryInfo;
 
 /* Utility functions for reading bytes from little-endian based file */
