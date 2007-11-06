@@ -29,6 +29,8 @@
 #import <Zip/ZipArchive.h>
 
 #define README_FILE_LENGTH	64
+#define LIPSUM_FILE_LENGTH	12323
+#define ENTRIES_IN_ZIP1		4
 
 @implementation ZipArchiveTest
 - (void) setUp {
@@ -49,12 +51,11 @@
 }
 
 - (void) testNumberOfZipEntries {
-	STAssertTrue([zip numberOfEntries] >= 0, @"Ensure test-archive1.zip contains more then 0 entries");
-	STAssertEquals([zip numberOfEntries], 3, @"Number of entries in a zip archive");
+	STAssertEquals([zip numberOfEntries], ENTRIES_IN_ZIP1, @"Number of entries in a zip archive");
 }
 
 - (void) testZipEntryInfo {
-	NSMutableArray *filesInTest = [NSMutableArray arrayWithObjects:@"test-archive/", @"test-archive/README", @"test-archive/test.txt", nil];
+	NSMutableArray *filesInTest = [NSMutableArray arrayWithObjects:@"test-archive1/", @"test-archive1/README", @"test-archive1/test.txt", @"test-archive1/lipsum.txt", nil];
 	NSEnumerator *entries = [[zip entries] objectEnumerator];
 	NSLog(@"Entries: %@", [zip entries]);
 	id entryName;
@@ -70,7 +71,7 @@
 	}
 	
 	// check no more files in test
-	STAssertEquals((unsigned)0, [filesInTest count], @"All files should be encountered when requesting entry info");
+	STAssertEquals([filesInTest count], (unsigned)0, @"All files should be encountered when requesting entry info");
 }
 
 /*- (void) testZipEntryInfoShorthand {
@@ -80,16 +81,16 @@
 	STAssertEqualObjects([info objectForKey:@"ZipEntryUncompressedSize"], [NSNumber numberWithInt:64], @"Uncompressed entry size");
 }*/
 
-- (void) testZipEntryReading {
+- (void) testSmallZipEntryReading {
 	/* Read from readme file. File uncompressed size is 64 bytes */
 	char file_contents[README_FILE_LENGTH + 1] = "README\n------\n\nThis archive is used to test the JKZip.framework.";
 	FILE *readmeFile;
 	char buf[513];
 	
-	STAssertTrue([zip entryForName:@"non-exising/file.txt"] == NULL, @"Requesting a non-existing file");
+	STAssertNil([zip entryNamed:@"non-exising/file.txt"], @"Requesting a non-existing file");
 	
-	readmeFile = [zip entryForName:@"test-archive/README"];
-	STAssertFalse(readmeFile == NULL, @"README file should be available in zip");
+	readmeFile = [zip entryNamed:@"test-archive1/README"];
+	STAssertNotNil(readmeFile, @"README file should be available in zip");
 	
 	// read from file, assert contents
 	int len = fread(&buf, sizeof(char), 512, readmeFile);
@@ -101,4 +102,15 @@
 	STAssertTrue(cmp == 0, @"Filecontents do not match");
 	
 }
+
+- (void) testLargeZipEntryReading {
+	int total_read = 0;
+	char buf[512];
+	
+	FILE *largerFile = [zip entryNamed:@"lipsum.txt"];
+	STAssertNotNil(largerFile, @"Larger file not found in archive");
+	
+	STAssertEquals(total_read, LIPSUM_FILE_LENGTH, @"Lenth of lipsum file");
+}
+
 @end
