@@ -80,7 +80,7 @@
 
 - (void) testZipEntryReading {
 	FILE *readmeFile;
-	char buf[512];
+	char buf[513];
 	
 	STAssertTrue([zip entryForName:@"non-exising/file.txt"] == NULL, @"Requesting a non-existing file");
 	
@@ -91,7 +91,9 @@
 	int total_read = 0;
 	int len;
 	while ((len = fread(&buf, sizeof(char), 512, readmeFile)) > 0) {
+		buf[len] = '\0';
 		NSLog(@"Read contents into buf");
+		NSLog(@"%s", buf);
 		total_read += len;
 	}
 	
