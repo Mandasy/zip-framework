@@ -236,7 +236,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	entry_io->stream->next_in = Z_NULL;
 	entry_io->stream->avail_in = 0;
 	
-	int result = inflateInit(entry_io->stream);
+	int result = inflateInit2(entry_io->stream, -15);
 	if (result != Z_OK) {
 		NSLog(@"Error setting up decompression stream");
 		
@@ -319,12 +319,20 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 		
 		NSLog(@"inflate");
 		int res = inflate(entry_io->stream, Z_SYNC_FLUSH);
+		
+		if (num_read != entry_io->stream->avail_in) {
+			total_read += num_read - entry_io->stream->avail_in;
+		}
+		
 		switch (res) {
 			case Z_OK:
 				NSLog(@"Inflate: OK");
 				break;
 			case Z_STREAM_END:
 				NSLog(@"Inflate: STREAM END");
+				if (total_read == 0) {
+					return 0;
+				}
 				break;
 			case Z_NEED_DICT:
 				NSLog(@"Inflate: NEED DICT");
@@ -346,11 +354,11 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 				break;
 		}
 		
-		break;
 		
-		total_read += 512 - entry_io->stream->avail_in;
 		
 		NSLog(@"avail_out: %d, avail_in: %d", entry_io->stream->avail_out, entry_io->stream->avail_in);
+	
+		break;
 	} while(entry_io->stream->avail_out > 0 && entry_io->stream->avail_in > 0);
 	
 	NSLog(@"Total read: %d", total_read);
