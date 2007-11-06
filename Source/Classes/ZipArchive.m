@@ -215,6 +215,8 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	entry_io->archive = self; // keep track of ziparchive object
 	entry_io->fp = fopen([file UTF8String], "r");
 	entry_io->read_pos = 0;
+	entry_io->uncompressed_size = cd_header->uncompressed;
+	entry_io->compressed_size = cd_header->compressed;
 	// TODO: check for fp success
 	
 	NSLog(@"Local offset: %d", cd_header->local_offset);
@@ -290,7 +292,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 
 - (int) readFromEntry:(ZipEntryInfo *)entry_io buffer:(char *)buf_out length:(int)len_out {
 	unsigned char buf_read[512];
-	int num_read, total_read;
+	int num_read, total_in_read;
 
 	// goto correct position in zip archive
 	NSLog(@"Position in file: %d + %d = %d", entry_io->offset_in_file, entry_io->read_pos, entry_io->offset_in_file + entry_io->read_pos);
@@ -300,10 +302,12 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	entry_io->stream->avail_out = len_out;
 	entry_io->stream->avail_in = 0;
 	
-	total_read = 0;
+	total_in_read = 0;
+	printf("uncompressed: %d\n", entry_io->uncompressed_size);
+	
 	do {
-		NSLog(@"Read from zip archive (fseek to: %d)", offset_in_file + total_read);
-		fseek(entry_io->fp, offset_in_file + total_read, SEEK_SET);
+		NSLog(@"Read from zip archive (fseek to: %d)", offset_in_file + total_in_read);
+		fseek(entry_io->fp, offset_in_file + total_in_read, SEEK_SET);
 		num_read = fread(buf_read, sizeof(char), 512, entry_io->fp);
 		if (num_read == 0) {
 			NSLog(@"Failed to read from file");
@@ -314,14 +318,14 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 		entry_io->stream->avail_in = num_read;
 		
 		
-		NSLog(@"Total read: %d", total_read);
+		NSLog(@"Total read: %d", total_in_read);
 		
 		
 		NSLog(@"inflate");
 		int res = inflate(entry_io->stream, Z_SYNC_FLUSH);
 		
 		if (num_read != entry_io->stream->avail_in) {
-			total_read += num_read - entry_io->stream->avail_in;
+			total_in_read += num_read - entry_io->stream->avail_in;
 		}
 		
 		switch (res) {
@@ -330,7 +334,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 				break;
 			case Z_STREAM_END:
 				NSLog(@"Inflate: STREAM END");
-				if (total_read == 0) {
+				if (total_in_read == 0) {
 					return 0;
 				}
 				break;
@@ -361,11 +365,12 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 		break;
 	} while(entry_io->stream->avail_out > 0 && entry_io->stream->avail_in > 0);
 	
-	NSLog(@"Total read: %d", total_read);
+	NSLog(@"Total read: %d", total_in_read);
 	
-	entry_io->read_pos += total_read;
+	entry_io->read_pos += total_in_read;
 	
-	return total_read;
+	// return number of bytes in output buffer
+	return len_out - entry_io->stream->avail_out;
 }
 
 - (CDFileHeader *) CDFileHeaderForFile:(NSString *)fileName {

@@ -28,6 +28,8 @@
 #import "ZipArchiveTest.h"
 #import <Zip/ZipArchive.h>
 
+#define README_FILE_LENGTH	64
+
 @implementation ZipArchiveTest
 - (void) setUp {
 	zipPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"test-archive1" ofType:@"zip"];
@@ -79,6 +81,8 @@
 }*/
 
 - (void) testZipEntryReading {
+	/* Read from readme file. File uncompressed size is 64 bytes */
+	char file_contents[README_FILE_LENGTH + 1] = "README\n------\n\nThis archive is used to test the JKZip.framework.";
 	FILE *readmeFile;
 	char buf[513];
 	
@@ -88,15 +92,13 @@
 	STAssertFalse(readmeFile == NULL, @"README file should be available in zip");
 	
 	// read from file, assert contents
-	int total_read = 0;
-	int len;
-	while ((len = fread(&buf, sizeof(char), 512, readmeFile)) > 0) {
-		buf[len] = '\0';
-		NSLog(@"Read contents into buf");
-		NSLog(@"%s", buf);
-		total_read += len;
-	}
+	int len = fread(&buf, sizeof(char), 512, readmeFile);
+	STAssertEquals(len, README_FILE_LENGTH, @"Length of data read");
 	
-	STAssertTrue(total_read > 0, @"Total number of bytes read");
+	buf[len] = '\0';
+	
+	int cmp = strncmp(buf, file_contents, README_FILE_LENGTH);
+	STAssertTrue(cmp == 0, @"Filecontents do not match");
+	
 }
 @end
