@@ -24,10 +24,23 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+ 
+/*!
+	@header	Zip.framework
+	Zip.framework provides functionality to read from zip a zip archive using just
+	a few lines of code.
+	
+	@copyright	Joris Kluivers
+*/
 
 #import <Cocoa/Cocoa.h>
 
 #import "ZipStructure.h"
+
+/*!
+	@class	ZipArchive
+	@discussion ZipArchive represents a zip file on disk.
+*/
 
 @interface ZipArchive : NSObject {
 	NSString *file;
@@ -42,9 +55,27 @@
 - (NSString *) name;
 - (NSString *) path;
 
+/*!
+	@method numberOfEntries
+	@result	The number of entries in the zip file, this includes directories
+*/
 - (int) numberOfEntries;
+
+/*!
+	@method entries
+	@abstract Returns an array with all names of entries in the zip archive.
+	@result	An array of strings
+*/
 - (NSArray *) entries;
 - (NSDictionary *) infoForEntry:(NSString *)fileName;
 
-- (FILE *) entryForName:(NSString *)fileName;
+/*!
+	@method	entryNamed
+	@abstract	Returns a c filestream that can be read from. 
+	@discussion	Currently the filestream only supports fread. fseek and fwrite are not implemented yet.
+	@param The name of the entry in the archive
+	@result	A standard c filestream that can be read from
+*/
+- (FILE *) entryNamed:(NSString *)fileName;
+// TODO: rename into entryNamed:
 @end

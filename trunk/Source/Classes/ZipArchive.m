@@ -202,7 +202,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	return nil;
 }
 
-- (FILE *) entryForName:(NSString *)fileName {
+- (FILE *) entryNamed:(NSString *)fileName {
 	CDFileHeader *cd_header = [self CDFileHeaderForFile:fileName];
 	if (cd_header == nil) {
 		NSLog(@"file not found");
@@ -244,7 +244,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 		
 		// TODO: free entry_io & stream
 		
-		return NULL;
+		return nil;
 	}
 	
 	// TODO: setup fclose handler
