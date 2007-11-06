@@ -8,7 +8,7 @@ The Zip framework doesn't work yet, but ideally reading files from zip archives 
 #import <Zip/ZipArchive.h>
 
 ZipArchive *zip = [[ZipArchive alloc] initWithFile:@"..."];
-FILE *fp = [zip entryForName:@"README.txt"]; // open stream to file README.txt in archive
+FILE *fp = [zip entryNamed:@"README.txt"]; // open stream to file README.txt in archive
 if (!fp) {
     printf("File does not exist in archive");
 }
