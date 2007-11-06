@@ -10,3 +10,5 @@ The Zip framework doesn't work yet, but ideally reading files from zip archives 
 ZipArchive *zip = [[ZipArchive alloc] initWithFile:@"..."];
 FILE *fp = [zip entryForName:@"README.txt"]; // open stream to file README.txt in archive
 }}}
+
+Please enter code examples on how you would want to use this framework in the comments below.
