@@ -53,6 +53,10 @@
 - (void) testNonExistingArchive {
 	ZipArchive *nonExistingArchive = [[ZipArchive alloc] initWithFile:@"/tmp/FileShouldNotExist.zip"];
 	STAssertNil(nonExistingArchive, @"Non existing archive");
+	
+	if (nonExistingArchive != nil) { // shouldn't be happening, just in case
+		[nonExistingArchive release];
+	}
 }
 
 - (void) testNumberOfZipEntries {
@@ -142,6 +146,34 @@
 	
 	STAssertEquals(total1, total2, @"Same entry, same content length");
 	STAssertEquals(total1, README_FILE_LENGTH, @"Readme file length");
+}
+
+- (void) tsetOpenArchiveTwice {
+	char buf[512];
+	int len, total1, total2;
+
+	FILE *readmeFile1 = [zip entryNamed:@"zip-archive1/README"];
+	total1 = 0;
+	while ((len = fread(buf, sizeof(char), 512, readmeFile1)) > 0) {
+		total1 += len;
+	}
+	
+	STAssertEquals(total1, README_FILE_LENGTH, @"README length from first opened archive");
+
+	// open zip archive again
+	ZipArchive *zip2 = [[ZipArchive alloc] initWithFile:zipPath];
+	STAssertNotNil(zip2, @"Opening test archive for second time");
+	
+	FILE *readmeFile2 = [zip2 entryNamed:@"zip-archive1/README"];
+	STAssertNotNil((id)readmeFile2, @"Existing readme file in archive");
+	
+	while ((len = fread(buf, sizeof(char), 512, readmeFile2)) > 0) {
+		total2 += len;
+	}
+	
+	STAssertEquals(total2, README_FILE_LENGTH, @"Readme file length");
+	
+	[zip2 release];
 }
 
 @end
