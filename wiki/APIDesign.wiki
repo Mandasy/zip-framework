@@ -1,4 +1,4 @@
-#labels code,api,Phase-Requirements,Featured
+#labels Phase-Requirements,Featured
 =API Design=
 
 The Zip framework doesn't work yet, but ideally reading files from zip archives would be accomplished with only a few lines of code:
@@ -8,9 +8,13 @@ The Zip framework doesn't work yet, but ideally reading files from zip archives 
 #import <Zip/ZipArchive.h>
 
 ZipArchive *zip = [[ZipArchive alloc] initWithFile:@"..."];
+if (!zip) {
+    NSLog(@"File could not be opened");
+}
+
 FILE *fp = [zip entryNamed:@"README.txt"]; // open stream to file README.txt in archive
 if (!fp) {
-    printf("File does not exist in archive");
+    NSLog(@"File does not exist in archive");
 }
 
 NSArray *allEntries = [zip entries];
