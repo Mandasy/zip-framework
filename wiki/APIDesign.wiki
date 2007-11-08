@@ -19,6 +19,11 @@ if (!fp) {
 
 NSArray *allEntries = [zip entries];
 // for example: [@"README", @"COPYING", @"src/", @"src/main.c"]
+
+[zip release];
+
+// Autoreleased version
+ZipArchive *autoreleasedZip = [ZipArchive archiveWithFile:@"..."];
 }}}
 
 Please enter code examples on how you would want to use this framework in the comments below.
