@@ -112,11 +112,17 @@
 }
 
 - (void) testLargeZipEntryReading {
-	int total_read = 0;
+	int total_read = 0, len = 0;
 	char buf[512];
 	
-	FILE *largerFile = [zip entryNamed:@"lipsum.txt"];
+	FILE *largerFile = [zip entryNamed:@"test-archive1/lipsum.txt"];
 	STAssertNotNil((id) largerFile, @"Larger file not found in archive");
+	
+	if (largerFile != nil) {
+		while ((len = fread(buf, sizeof(char), 512, largerFile)) > 0) {
+			total_read += len;
+		}
+	}
 	
 	STAssertEquals(total_read, LIPSUM_FILE_LENGTH, @"Lenth of lipsum file");
 }
