@@ -162,7 +162,18 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 }
 
 @implementation ZipArchive
++ (id) archiveWithFile:(NSString *)location {
+	return [[[ZipArchive alloc] initWithFile:location] autorelease];
+}
+
 - (id) initWithFile:(NSString *)location {
+	// check if file exists
+	if (![[NSFileManager defaultManager] fileExistsAtPath:location]) {
+		return nil;
+	}
+	
+	// TODO: add test for "is readable file"
+
 	self = [super init];
 	
 	if (self) {

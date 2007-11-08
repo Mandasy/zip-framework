@@ -50,6 +50,8 @@
 	CDFileHeader *central_directory; // array of CDFileHeaders
 }
 
++ (id) archiveWithFile:(NSString *)location;
+
 - (id) initWithFile:(NSString *)location;
 
 - (NSString *) name;
