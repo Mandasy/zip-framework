@@ -50,6 +50,11 @@
 	STAssertEqualObjects([zip name], @"test-archive1.zip", @"ZipArchive name");
 }
 
+- (void) testNonExistingArchive {
+	ZipArchive *nonExistingArchive = [[ZipArchive alloc] initWithFile:@"/tmp/FileShouldNotExist.zip"];
+	STAssertNil(nonExistingArchive, @"Non existing archive");
+}
+
 - (void) testNumberOfZipEntries {
 	STAssertEquals([zip numberOfEntries], ENTRIES_IN_ZIP1, @"Number of entries in a zip archive");
 }
@@ -100,7 +105,6 @@
 	
 	int cmp = strncmp(buf, file_contents, README_FILE_LENGTH);
 	STAssertTrue(cmp == 0, @"Filecontents do not match");
-	
 }
 
 - (void) testLargeZipEntryReading {
@@ -108,9 +112,36 @@
 	char buf[512];
 	
 	FILE *largerFile = [zip entryNamed:@"lipsum.txt"];
-	STAssertNotNil(largerFile, @"Larger file not found in archive");
+	STAssertNotNil((id) largerFile, @"Larger file not found in archive");
 	
 	STAssertEquals(total_read, LIPSUM_FILE_LENGTH, @"Lenth of lipsum file");
+}
+
+- (void) testOpenEntryTwice {
+	char buf[512];
+	int len;
+	int total1, total2;
+
+	FILE *entry1 = [zip entryNamed:@"test-archive1/README"];
+	FILE *entry2 = [zip entryNamed:@"test-archive1/README"];
+	
+	STAssertNotNil((id) entry1, @"First opened entry");
+	STAssertNotNil((id) entry2, @"Opened same entry second time");
+	
+	// read from first entry
+	total1 = 0;
+	while ((len = fread(buf, sizeof(char), 512, entry1)) > 0) {
+		total1 += len;
+	}
+	
+	// read from second entry
+	total2 = 0;
+	while ((len = fread(buf, sizeof(char), 512, entry2)) > 0) {
+		total2 += len;
+	}
+	
+	STAssertEquals(total1, total2, @"Same entry, same content length");
+	STAssertEquals(total1, README_FILE_LENGTH, @"Readme file length");
 }
 
 @end
