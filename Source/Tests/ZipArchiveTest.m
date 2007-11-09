@@ -51,6 +51,8 @@
 }
 
 - (void) testNonExistingArchive {
+	NSLog(@"testNonExistingArchive");
+
 	ZipArchive *nonExistingArchive = [[ZipArchive alloc] initWithFile:@"/tmp/FileShouldNotExist.zip"];
 	STAssertNil(nonExistingArchive, @"Non existing archive");
 	
@@ -96,10 +98,10 @@
 	FILE *readmeFile;
 	char buf[513];
 	
-	STAssertNil([zip entryNamed:@"non-exising/file.txt"], @"Requesting a non-existing file");
+	STAssertNil((id)[zip entryNamed:@"non-exising/file.txt"], @"Requesting a non-existing file");
 	
 	readmeFile = [zip entryNamed:@"test-archive1/README"];
-	STAssertNotNil(readmeFile, @"README file should be available in zip");
+	STAssertNotNil((id)readmeFile, @"README file should be available in zip");
 	
 	// read from file, assert contents
 	int len = fread(&buf, sizeof(char), 512, readmeFile);

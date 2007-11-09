@@ -71,6 +71,10 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len);
 - (CDFileHeader *) CDFileHeaderForFile:(NSString *)name;
 @end
 
+#import <Foundation/NSDebug.h>
+#define JKLog(s,...) \
+	if (NSDebugEnabled) { NSLog(s, ##__VA_ARGS__); }
+
 
 
 

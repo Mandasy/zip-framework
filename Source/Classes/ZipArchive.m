@@ -143,8 +143,8 @@ void readLocalFileHeader(FileHeader *header, FILE *fp) {
 	header->name_len = JKReadUInt16(fp);
 	header->extra_len = JKReadUInt16(fp);
 	
-	NSLog(@"Name len: %d", header->name_len);
-	NSLog(@"Extra len: %d", header->extra_len);
+	JKLog(@"Name len: %d", header->name_len);
+	JKLog(@"Extra len: %d", header->extra_len);
 	
 	if (header->name_len > 0) {
 			header->name = (char *) malloc(sizeof(char) * (header->name_len + 1));
@@ -216,10 +216,10 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 - (FILE *) entryNamed:(NSString *)fileName {
 	CDFileHeader *cd_header = [self CDFileHeaderForFile:fileName];
 	if (cd_header == nil) {
-		NSLog(@"file not found");
+		JKLog(@"file not found");
 		return NULL;
 	} else {
-		NSLog(@"File found: %s", cd_header->name);
+		JKLog(@"File found: %s", cd_header->name);
 	}
 	
 	ZipEntryInfo *entry_io = (ZipEntryInfo *) malloc(sizeof(ZipEntryInfo));
@@ -230,16 +230,16 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	entry_io->compressed_size = cd_header->compressed;
 	// TODO: check for fp success
 	
-	NSLog(@"Local offset: %d", cd_header->local_offset);
+	JKLog(@"Local offset: %d", cd_header->local_offset);
 	
 	fseek(entry_io->fp, cd_header->local_offset, SEEK_SET);
 	
 	readLocalFileHeader(&(entry_io->file_header), entry_io->fp);
-	NSLog(@"Filename check: %s", entry_io->file_header.name);
+	JKLog(@"Filename check: %s", entry_io->file_header.name);
 	
 	// set offset in file to first compressed data byte
 	entry_io->offset_in_file = ftell(entry_io->fp);
-	NSLog(@"Position after reading local header: %d", (int) ftell(entry_io->fp));
+	JKLog(@"Position after reading local header: %d", (int) ftell(entry_io->fp));
 	
 	// stream for decompression
 	entry_io->stream = (z_streamp) malloc(sizeof(z_streamp));
@@ -251,7 +251,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	
 	int result = inflateInit2(entry_io->stream, -15);
 	if (result != Z_OK) {
-		NSLog(@"Error setting up decompression stream");
+		JKLog(@"Error setting up decompression stream");
 		
 		// TODO: free entry_io & stream
 		
@@ -275,13 +275,13 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	
 	trailerPosition = zipDiskTrailerInFile(fp, filesize);
 	if (trailerPosition < 0) {
-		NSLog(@"No disk trailer found in file");
+		JKLog(@"No disk trailer found in file");
 		return;
 	}
 	
 	file_names = [[NSMutableArray alloc] init];
 	
-	NSLog(@"Trailer found at: %d", trailerPosition);
+	JKLog(@"Trailer found at: %d", trailerPosition);
 	
 	fseek(fp, trailerPosition, SEEK_SET);
 	fread(&trailer, sizeof(CDERecord), 1, fp);
@@ -306,7 +306,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	int num_read, total_in_read;
 
 	// goto correct position in zip archive
-	NSLog(@"Position in file: %d + %d = %d", entry_io->offset_in_file, entry_io->read_pos, entry_io->offset_in_file + entry_io->read_pos);
+	JKLog(@"Position in file: %d + %d = %d", entry_io->offset_in_file, entry_io->read_pos, entry_io->offset_in_file + entry_io->read_pos);
 	int offset_in_file = entry_io->offset_in_file + entry_io->read_pos;
 
 	entry_io->stream->next_out = (unsigned char *) buf_out;
@@ -314,25 +314,25 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	entry_io->stream->avail_in = 0;
 	
 	total_in_read = 0;
-	printf("uncompressed: %d\n", entry_io->uncompressed_size);
+	JKLog(@"uncompressed: %d", entry_io->uncompressed_size);
 	
 	do {
-		NSLog(@"Read from zip archive (fseek to: %d)", offset_in_file + total_in_read);
+		JKLog(@"Read from zip archive (fseek to: %d)", offset_in_file + total_in_read);
 		fseek(entry_io->fp, offset_in_file + total_in_read, SEEK_SET);
 		num_read = fread(buf_read, sizeof(char), 512, entry_io->fp);
 		if (num_read == 0) {
-			NSLog(@"Failed to read from file");
+			JKLog(@"Failed to read from file");
 		}
-		NSLog(@"Num read: %d", num_read);
+		JKLog(@"Num read: %d", num_read);
 		
 		entry_io->stream->next_in = buf_read;
 		entry_io->stream->avail_in = num_read;
 		
 		
-		NSLog(@"Total read: %d", total_in_read);
+		JKLog(@"Total read: %d", total_in_read);
 		
 		
-		NSLog(@"inflate");
+		JKLog(@"inflate");
 		int res = inflate(entry_io->stream, Z_SYNC_FLUSH);
 		
 		if (num_read != entry_io->stream->avail_in) {
@@ -341,42 +341,42 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 		
 		switch (res) {
 			case Z_OK:
-				NSLog(@"Inflate: OK");
+				JKLog(@"Inflate: OK");
 				break;
 			case Z_STREAM_END:
-				NSLog(@"Inflate: STREAM END");
+				JKLog(@"Inflate: STREAM END");
 				if (total_in_read == 0) {
 					return 0;
 				}
 				break;
 			case Z_NEED_DICT:
-				NSLog(@"Inflate: NEED DICT");
+				JKLog(@"Inflate: NEED DICT");
 				break;
 			case Z_DATA_ERROR:
-				NSLog(@"Inflate: DATA ERROR");
+				JKLog(@"Inflate: DATA ERROR");
 				break;
 			case Z_STREAM_ERROR:
-				NSLog(@"Inflate: STREAM ERROR");
+				JKLog(@"Inflate: STREAM ERROR");
 				break;
 			case Z_MEM_ERROR:
-				NSLog(@"Inflate: MEM ERROR");
+				JKLog(@"Inflate: MEM ERROR");
 				break;
 			case Z_BUF_ERROR:
-				NSLog(@"Inflate: BUF ERROR");
+				JKLog(@"Inflate: BUF ERROR");
 				break;
 			case Z_FINISH:
-				NSLog(@"Inflate: FINISH");
+				JKLog(@"Inflate: FINISH");
 				break;
 		}
 		
 		
 		
-		NSLog(@"avail_out: %d, avail_in: %d", entry_io->stream->avail_out, entry_io->stream->avail_in);
+		JKLog(@"avail_out: %d, avail_in: %d", entry_io->stream->avail_out, entry_io->stream->avail_in);
 	
 		break;
 	} while(entry_io->stream->avail_out > 0 && entry_io->stream->avail_in > 0);
 	
-	NSLog(@"Total read: %d", total_in_read);
+	JKLog(@"Total read: %d", total_in_read);
 	
 	entry_io->read_pos += total_in_read;
 	
