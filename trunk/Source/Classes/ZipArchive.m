@@ -177,7 +177,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	self = [super init];
 	
 	if (self) {
-		file = location;
+		file = [location retain];
 		central_directory = nil;
 		file_count = 0;
 	}
@@ -402,6 +402,8 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 }
 
 - (void) dealloc {
+	[file release];
+
 	if (central_directory != NULL) {
 		int i;
 		for (i=0; i<file_count; i++) {
