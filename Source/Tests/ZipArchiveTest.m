@@ -51,8 +51,6 @@
 }
 
 - (void) testNonExistingArchive {
-	NSLog(@"testNonExistingArchive");
-
 	ZipArchive *nonExistingArchive = [[ZipArchive alloc] initWithFile:@"/tmp/FileShouldNotExist.zip"];
 	STAssertNil(nonExistingArchive, @"Non existing archive");
 	
@@ -68,7 +66,7 @@
 - (void) testZipEntryInfo {
 	NSMutableArray *filesInTest = [NSMutableArray arrayWithObjects:@"test-archive1/", @"test-archive1/README", @"test-archive1/test.txt", @"test-archive1/lipsum.txt", nil];
 	NSEnumerator *entries = [[zip entries] objectEnumerator];
-	NSLog(@"Entries: %@", [zip entries]);
+	
 	id entryName;
 	while ((entryName = [entries nextObject]) != nil) {
 		/*NSDictionary *infoDict = [zip infoForEntry:entryName];
@@ -109,11 +107,16 @@
 	
 	buf[len] = '\0';
 	
-	int cmp = strncmp(buf, file_contents, README_FILE_LENGTH);
-	STAssertTrue(cmp == 0, @"Filecontents do not match");
+	int cmp = strncmp((const char *)buf, (const char *)file_contents, README_FILE_LENGTH);
+	STAssertEquals(cmp, 0, @"Filecontents do not match");
 }
 
 - (void) testLargeZipEntryReading {
+	/*
+		Test the readed content of a file with contents larger then a 
+		single read buffer
+	*/
+
 	int total_read = 0, len = 0;
 	char buf[512];
 	
@@ -127,6 +130,38 @@
 	}
 	
 	STAssertEquals(total_read, LIPSUM_FILE_LENGTH, @"Lenth of lipsum file");
+}
+
+- (void) testFullBufferReads {
+	/*
+		A test to see if all buffer space is used when reading, to ensure
+		the least cycles in a loop are used
+	*/
+	
+	char buf[4096];
+	int last_read = LIPSUM_FILE_LENGTH % 4096;
+	int num_reads = (LIPSUM_FILE_LENGTH - last_read) / 4096;
+	int len = 0;
+	int total_read = 0;
+	
+	FILE *lipsum = [zip entryNamed:@"test-archive1/lipsum.txt"];
+	
+	// do all full reads
+	int i=0;
+	for (i=0; i<num_reads; i++) {
+		len = fread(buf, sizeof(char), 4096, lipsum);
+		
+		STAssertEquals(len, 4096, @"Full read");
+		
+		total_read += len;
+	}
+	
+	// left over read
+	len = fread(buf, sizeof(char), 4096, lipsum);
+	STAssertEquals(len, last_read, @"Left over read");
+	total_read += len;
+	
+	STAssertEquals(total_read, LIPSUM_FILE_LENGTH, @"Lipsum.txt length");
 }
 
 - (void) testOpenEntryTwice {
@@ -156,11 +191,12 @@
 	STAssertEquals(total1, README_FILE_LENGTH, @"Readme file length");
 }
 
-- (void) tsetOpenArchiveTwice {
+- (void) testOpenArchiveTwice {
 	char buf[512];
-	int len, total1, total2;
+	int len, total1 = 0, total2 = 0;
 
-	FILE *readmeFile1 = [zip entryNamed:@"zip-archive1/README"];
+	FILE *readmeFile1 = [zip entryNamed:@"test-archive1/README"];
+	STAssertNotNil((id)readmeFile1, @"Readme file");
 	total1 = 0;
 	while ((len = fread(buf, sizeof(char), 512, readmeFile1)) > 0) {
 		total1 += len;
@@ -172,7 +208,7 @@
 	ZipArchive *zip2 = [[ZipArchive alloc] initWithFile:zipPath];
 	STAssertNotNil(zip2, @"Opening test archive for second time");
 	
-	FILE *readmeFile2 = [zip2 entryNamed:@"zip-archive1/README"];
+	FILE *readmeFile2 = [zip2 entryNamed:@"test-archive1/README"];
 	STAssertNotNil((id)readmeFile2, @"Existing readme file in archive");
 	
 	while ((len = fread(buf, sizeof(char), 512, readmeFile2)) > 0) {
