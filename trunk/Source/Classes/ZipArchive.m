@@ -305,40 +305,38 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	unsigned char buf_read[512];
 	int num_read, total_in_read;
 
-	// goto correct position in zip archive
+	if (len_out < 1) {
+		return 0;
+	}
+
 	JKLog(@"Position in file: %d + %d = %d", entry_io->offset_in_file, entry_io->read_pos, entry_io->offset_in_file + entry_io->read_pos);
-	int offset_in_file = entry_io->offset_in_file + entry_io->read_pos;
+	int offset_in_file = entry_io->offset_in_file + entry_io->read_pos; // read position on compressed bytes
 
 	entry_io->stream->next_out = (unsigned char *) buf_out;
 	entry_io->stream->avail_out = len_out;
 	entry_io->stream->avail_in = 0;
 	
 	total_in_read = 0;
-	JKLog(@"uncompressed: %d", entry_io->uncompressed_size);
 	
-	do {
-		JKLog(@"Read from zip archive (fseek to: %d)", offset_in_file + total_in_read);
-		fseek(entry_io->fp, offset_in_file + total_in_read, SEEK_SET);
+	while (entry_io->stream->avail_out > 0 // room left in output buffer
+		&& total_in_read + entry_io->read_pos < entry_io->compressed_size // not read all compressed bytes yet
+		) {
+		
+		// read compressed bytes
+		fseek(entry_io->fp, offset_in_file + total_in_read, SEEK_SET); // TODO: maybe only once per readFromEntry: call
 		num_read = fread(buf_read, sizeof(char), 512, entry_io->fp);
-		if (num_read == 0) {
-			JKLog(@"Failed to read from file");
-		}
-		JKLog(@"Num read: %d", num_read);
 		
 		entry_io->stream->next_in = buf_read;
 		entry_io->stream->avail_in = num_read;
+	
+		// decompress
+		/*int res =*/ (void) inflate(entry_io->stream, Z_SYNC_FLUSH);
+		// TODO: check inflate result
 		
-		
-		JKLog(@"Total read: %d", total_in_read);
-		
-		
-		JKLog(@"inflate");
-		int res = inflate(entry_io->stream, Z_SYNC_FLUSH);
-		
-		if (num_read != entry_io->stream->avail_in) {
-			total_in_read += num_read - entry_io->stream->avail_in;
-		}
-		
+		total_in_read += num_read - entry_io->stream->avail_in;
+	}
+	
+	/*
 		switch (res) {
 			case Z_OK:
 				JKLog(@"Inflate: OK");
@@ -368,15 +366,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 				JKLog(@"Inflate: FINISH");
 				break;
 		}
-		
-		
-		
-		JKLog(@"avail_out: %d, avail_in: %d", entry_io->stream->avail_out, entry_io->stream->avail_in);
-	
-		break;
-	} while(entry_io->stream->avail_out > 0 && entry_io->stream->avail_in > 0);
-	
-	JKLog(@"Total read: %d", total_in_read);
+	*/
 	
 	entry_io->read_pos += total_in_read;
 	

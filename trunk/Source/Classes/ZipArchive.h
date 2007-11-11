@@ -50,8 +50,11 @@
 	CDFileHeader *central_directory; // array of CDFileHeaders
 }
 
-+ (id) archiveWithFile:(NSString *)location;
+/*!
+	@functiongroup	Creating ZipArchive objects
+*/
 
++ (id) archiveWithFile:(NSString *)location;
 - (id) initWithFile:(NSString *)location;
 
 - (NSString *) name;
@@ -79,5 +82,6 @@
 	@result	A standard c filestream that can be read from
 */
 - (FILE *) entryNamed:(NSString *)fileName;
-// TODO: rename into entryNamed:
+
+// TODO: - (NSData *) dataForEntryNamed:(NSString *)fileName;
 @end
