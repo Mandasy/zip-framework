@@ -1,4 +1,6 @@
+#summary Current and future API design
 #labels Phase-Requirements,Featured
+
 =API Design=
 
 The Zip framework doesn't work yet, but ideally reading files from zip archives would be accomplished with only a few lines of code:
