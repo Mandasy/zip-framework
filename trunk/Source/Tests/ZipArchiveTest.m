@@ -220,4 +220,8 @@
 	[zip2 release];
 }
 
+- (void) testFscanfReading {
+	// TODO: see how buffer behaves. What happens if 1 read 1 float, do we decompress 512 bytes?
+}
+
 @end
