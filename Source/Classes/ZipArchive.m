@@ -380,7 +380,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	}
 
 	int i;
-	char *tmp_name = [fileName UTF8String];
+	const char *tmp_name = [fileName UTF8String];
 	char *name = malloc(sizeof(char) * (strlen(tmp_name) + 1));
 	strncpy(name, tmp_name, strlen(tmp_name) + 1);
 	

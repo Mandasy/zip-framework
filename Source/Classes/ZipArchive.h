@@ -57,7 +57,14 @@
 + (id) archiveWithFile:(NSString *)location;
 - (id) initWithFile:(NSString *)location;
 
+/*!
+	The filename of the ZipArchive. Equivalent to [[self path] lastPathComponent];
+*/
 - (NSString *) name;
+
+/*! 
+	The complete path to the ZipArchive on disk
+*/
 - (NSString *) path;
 
 /*!
@@ -72,7 +79,6 @@
 	@result	An array of strings
 */
 - (NSArray *) entries;
-- (NSDictionary *) infoForEntry:(NSString *)fileName;
 
 /*!
 	@method	entryNamed
