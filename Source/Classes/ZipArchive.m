@@ -380,7 +380,9 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	}
 
 	int i;
-	const char *name = [fileName UTF8String];
+	char *tmp_name = [fileName UTF8String];
+	char *name = malloc(sizeof(char) * (strlen(tmp_name) + 1));
+	strncpy(name, tmp_name, strlen(tmp_name) + 1);
 	
 	for (i=0; i<file_count; i++) {
 		if (strncmp(name, central_directory[i].name, strlen(name)) == 0) {
