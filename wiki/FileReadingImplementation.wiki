@@ -1,5 +1,5 @@
 #summary Reading from a zip entry: implementation
-#labels Phase-Implementation,Featured
+#labels Phase-Implementation
 
 =File pointer operations=
 
