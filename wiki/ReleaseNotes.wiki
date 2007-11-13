@@ -3,7 +3,7 @@
 
 = Version 0.1 =
 
-Initial release of the Zip.framework. This release enables you to read directly from files in a zip archive. No need to use NSTask anymore to execute command line tools.
+Initial release of the Zip.framework. The single interface in the framework (ZipArchive) enables you to read directly from a file in a zip archive without using a NSTask.
 
 {{{
 # Checkout the sourcecode for the Xcode project for this release using:
