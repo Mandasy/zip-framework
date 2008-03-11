@@ -95,6 +95,17 @@ int zipDiskTrailerInFile(FILE *fp, int size) {
 	return trailerPosition;
 }
 
+void readCentralDirectoryTrailer(CDERecord *record, FILE *fp) {
+	record->signature = JKReadUInt32(fp);
+	record->curr_disk = JKReadUInt16(fp);
+	record->cd_disk = JKReadUInt16(fp);
+	record->nr_files_disk = JKReadUInt16(fp);
+	record->nr_files = JKReadUInt16(fp);
+	record->cd_len = JKReadUInt32(fp);
+	record->cd_offset = JKReadUInt32(fp);
+	record->comment_len = JKReadUInt16(fp);
+}
+
 void readCDFileHeader(CDFileHeader *header, FILE *fp) {
 	// TODO: read header in single read statement
 
@@ -218,8 +229,13 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	if (cd_header == nil) {
 		JKLog(@"file not found");
 		return NULL;
-	} else {
-		JKLog(@"File found: %s", cd_header->name);
+	} 
+	
+	JKLog(@"File found: %s", cd_header->name);
+	
+	if (cd_header->compressed == 0) {
+		JKLog(@"Compressed size == 0: not a file");
+		return NULL;
 	}
 	
 	ZipEntryInfo *entry_io = (ZipEntryInfo *) malloc(sizeof(ZipEntryInfo));
@@ -227,6 +243,9 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	entry_io->fp = fopen([file UTF8String], "r");
 	entry_io->read_pos = 0;
 	entry_io->uncompressed_size = cd_header->uncompressed;
+	NSLog(@"cd_header->compressed: %d", cd_header->compressed);
+	NSLog(@"cd_header->uncompressed: %d", cd_header->uncompressed);
+	NSLog(@"Uncompressed size: %d", entry_io->uncompressed_size);
 	entry_io->compressed_size = cd_header->compressed;
 	// TODO: check for fp success
 	
@@ -268,6 +287,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 - (void) readCentralDirectory {
 	CDERecord trailer;
 	int filesize, trailerPosition;
+	unsigned int cd_pos;
 	FILE *fp = fopen([file UTF8String], "r");
 	
 	fseek(fp, 0, SEEK_END);
@@ -284,10 +304,10 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	JKLog(@"Trailer found at: %d", trailerPosition);
 	
 	fseek(fp, trailerPosition, SEEK_SET);
-	fread(&trailer, sizeof(CDERecord), 1, fp);
+	readCentralDirectoryTrailer(&trailer, fp);
 	
-	file_count = CFSwapInt16LittleToHost(trailer.nr_files);
-	unsigned int cd_pos = CFSwapInt32LittleToHost(trailer.cd_offset);
+	file_count = trailer.nr_files;
+	cd_pos = trailer.cd_offset;
 	
 	central_directory = (CDFileHeader *) malloc(sizeof(CDFileHeader) * file_count);
 	
@@ -336,42 +356,14 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 		total_in_read += num_read - entry_io->stream->avail_in;
 	}
 	
-	/*
-		switch (res) {
-			case Z_OK:
-				JKLog(@"Inflate: OK");
-				break;
-			case Z_STREAM_END:
-				JKLog(@"Inflate: STREAM END");
-				if (total_in_read == 0) {
-					return 0;
-				}
-				break;
-			case Z_NEED_DICT:
-				JKLog(@"Inflate: NEED DICT");
-				break;
-			case Z_DATA_ERROR:
-				JKLog(@"Inflate: DATA ERROR");
-				break;
-			case Z_STREAM_ERROR:
-				JKLog(@"Inflate: STREAM ERROR");
-				break;
-			case Z_MEM_ERROR:
-				JKLog(@"Inflate: MEM ERROR");
-				break;
-			case Z_BUF_ERROR:
-				JKLog(@"Inflate: BUF ERROR");
-				break;
-			case Z_FINISH:
-				JKLog(@"Inflate: FINISH");
-				break;
-		}
-	*/
-	
 	entry_io->read_pos += total_in_read;
 	
 	// return number of bytes in output buffer
 	return len_out - entry_io->stream->avail_out;
+}
+
+- (void) closeEntry:(ZipEntryInfo *)entry_io {
+	// TODO: close entry_io->stream
 }
 
 - (CDFileHeader *) CDFileHeaderForFile:(NSString *)fileName {
