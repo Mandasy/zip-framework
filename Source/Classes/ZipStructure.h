@@ -28,12 +28,6 @@
 #define ZIP_DISK_TRAILER	(0x06054b50)
 #define ZIP_BUFF_SIZE	512
 
-// force structs to minimal size to be able to read from file
-#pragma pack(1)
-
-// TODO: read these structs field by field, not as a whole, so
-//		 we can remove the pragma pack
-
 /* central directory end record */
 typedef struct cde_record {
 	uint32_t signature;
@@ -100,5 +94,3 @@ typedef enum {
 	NoCompression = 0,
 	Deflated = 8
 } CompressionType;
-
-#pragma pack()

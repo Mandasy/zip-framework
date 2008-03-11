@@ -84,10 +84,10 @@
 	@method	entryNamed
 	@abstract	Returns a c filestream that can be read from. 
 	@discussion	Currently the filestream only supports fread. fseek and fwrite are not implemented yet.
-	@param The name of the entry in the archive
-	@result	A standard c filestream that can be read from
+	@param The path of the entry in the archive
+	@result	A standard c filestream that can be read from: NULL if the path doesn't exist or is a directory
 */
-- (FILE *) entryNamed:(NSString *)fileName;
+- (FILE *) entryNamed:(NSString *)filePath;
 
 // TODO: - (NSData *) dataForEntryNamed:(NSString *)fileName;
 @end
