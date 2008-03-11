@@ -243,9 +243,6 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	entry_io->fp = fopen([file UTF8String], "r");
 	entry_io->read_pos = 0;
 	entry_io->uncompressed_size = cd_header->uncompressed;
-	NSLog(@"cd_header->compressed: %d", cd_header->compressed);
-	NSLog(@"cd_header->uncompressed: %d", cd_header->uncompressed);
-	NSLog(@"Uncompressed size: %d", entry_io->uncompressed_size);
 	entry_io->compressed_size = cd_header->compressed;
 	// TODO: check for fp success
 	
@@ -261,7 +258,11 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	JKLog(@"Position after reading local header: %d", (int) ftell(entry_io->fp));
 	
 	// stream for decompression
-	entry_io->stream = (z_streamp) malloc(sizeof(z_streamp));
+		// Uses sizeof(struct z_stream_s) instead of sizeof(z_streamp)
+	entry_io->stream = (z_streamp) malloc(sizeof(struct z_stream_s));
+	if (entry_io->stream == NULL) {
+		NSLog(@"entry_io->stream == NULL");
+	}
 	entry_io->stream->zalloc = Z_NULL;
 	entry_io->stream->zfree = Z_NULL; // use default
 	entry_io->stream->opaque = 0;
