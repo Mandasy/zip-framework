@@ -226,60 +226,60 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 
 - (FILE *) entryNamed:(NSString *)fileName {
 	CDFileHeader *cd_header = [self CDFileHeaderForFile:fileName];
+	
 	if (cd_header == nil) {
-		JKLog(@"file not found");
+		JKLog(@"file not found in archive");
 		return NULL;
 	} 
-	
-	JKLog(@"File found: %s", cd_header->name);
 	
 	if (cd_header->compressed == 0) {
 		JKLog(@"Compressed size == 0: not a file");
 		return NULL;
 	}
 	
+	/* cookie that will be passed to delegate fread functions */
 	ZipEntryInfo *entry_io = (ZipEntryInfo *) malloc(sizeof(ZipEntryInfo));
-	entry_io->archive = self; // keep track of ziparchive object
-	entry_io->fp = fopen([file UTF8String], "r");
+	entry_io->archive = self;
 	entry_io->read_pos = 0;
 	entry_io->uncompressed_size = cd_header->uncompressed;
 	entry_io->compressed_size = cd_header->compressed;
-	// TODO: check for fp success
+	entry_io->fp = fopen([file UTF8String], "r");
 	
-	JKLog(@"Local offset: %d", cd_header->local_offset);
+	if (entry_io->fp == NULL) {
+		JKLog(@"Unable to open zip for reading");
+		return NULL;
+	}
 	
+	/* Move to file header position in zip file */
 	fseek(entry_io->fp, cd_header->local_offset, SEEK_SET);
-	
 	readLocalFileHeader(&(entry_io->file_header), entry_io->fp);
-	JKLog(@"Filename check: %s", entry_io->file_header.name);
 	
-	// set offset in file to first compressed data byte
-	entry_io->offset_in_file = ftell(entry_io->fp);
-	JKLog(@"Position after reading local header: %d", (int) ftell(entry_io->fp));
+	entry_io->offset_in_file = ftell(entry_io->fp); // save position of first compressed data byte
 	
-	// stream for decompression
-		// Uses sizeof(struct z_stream_s) instead of sizeof(z_streamp)
+	/* allocate zlib stream for decompression */
 	entry_io->stream = (z_streamp) malloc(sizeof(struct z_stream_s));
 	if (entry_io->stream == NULL) {
 		NSLog(@"entry_io->stream == NULL");
 	}
 	entry_io->stream->zalloc = Z_NULL;
-	entry_io->stream->zfree = Z_NULL; // use default
+	entry_io->stream->zfree = Z_NULL;
 	entry_io->stream->opaque = 0;
 	entry_io->stream->next_in = Z_NULL;
 	entry_io->stream->avail_in = 0;
 	
+	/* initialize zlib stream */
 	int result = inflateInit2(entry_io->stream, -15);
 	if (result != Z_OK) {
-		JKLog(@"Error setting up decompression stream");
-		
 		// TODO: free entry_io & stream
-		
+		JKLog(@"Error setting up decompression stream");
 		return nil;
 	}
 	
 	// TODO: setup fclose handler
-	return fropen((void *)entry_io, ZipArchive_entry_do_read);
+	return fropen(
+		(void *)entry_io, 
+		ZipArchive_entry_do_read
+	);
 }
 
 
