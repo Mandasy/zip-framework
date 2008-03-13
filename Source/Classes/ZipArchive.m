@@ -387,6 +387,7 @@ int ZipArchive_entry_do_close(void *cookie) {
 	if (inflateEnd(entry_io->stream) != Z_OK) {
 		close_status = EOF;
 	}
+	free(entry_io->stream);
 	
 	free(entry_io);
 	

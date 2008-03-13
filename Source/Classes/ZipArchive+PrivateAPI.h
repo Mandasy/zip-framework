@@ -29,6 +29,7 @@
 #import <stdio.h>
 
 /* Struct used as cookie to keep information about the file being read */
+// TODO: change z_streamp to z_stream (pointer to plain struct)
 typedef struct {
 	ZipArchive *archive;
 	FILE *fp; // file pointer for reading
