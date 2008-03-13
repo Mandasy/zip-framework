@@ -114,7 +114,7 @@
 		single read buffer
 	*/
 
-	int total_read = 0, len = 0;
+	int total_read = 0, len = 0, res = 0;
 	char buf[512];
 	
 	FILE *largerFile = [zip entryNamed:@"test-archive1/lipsum.txt"];
@@ -127,6 +127,9 @@
 	}
 	
 	STAssertEquals(total_read, LIPSUM_FILE_LENGTH, @"Lenth of lipsum file");
+	
+	res = fclose(largerFile);
+	STAssertEquals(res, 0, @"Close result of larger file");
 }
 
 - (void) testFullBufferReads {
@@ -138,7 +141,7 @@
 	char buf[4096];
 	int last_read = LIPSUM_FILE_LENGTH % 4096;
 	int num_reads = (LIPSUM_FILE_LENGTH - last_read) / 4096;
-	int len = 0;
+	int len = 0, res = 0;
 	int total_read = 0;
 	
 	FILE *lipsum = [zip entryNamed:@"test-archive1/lipsum.txt"];
@@ -159,11 +162,14 @@
 	total_read += len;
 	
 	STAssertEquals(total_read, LIPSUM_FILE_LENGTH, @"Lipsum.txt length");
+	
+	res = fclose(lipsum);
+	STAssertEquals(res, 0, @"Close lipsum.txt result");
 }
 
 - (void) testOpenEntryTwice {
 	char buf[512];
-	int len;
+	int len, res;
 	int total1, total2;
 
 	FILE *entry1 = [zip entryNamed:@"test-archive1/README"];
@@ -186,6 +192,12 @@
 	
 	STAssertEquals(total1, total2, @"Same entry, same content length");
 	STAssertEquals(total1, README_FILE_LENGTH, @"Readme file length");
+	
+	res = fclose(entry1);
+	STAssertEquals(res, 0, @"Closing entry 1");
+	
+	res = fclose(entry2);
+	STAssertEquals(res, 0, @"Closing entry 2");
 }
 
 - (void) testOpenArchiveTwice {
@@ -215,6 +227,10 @@
 	STAssertEquals(total2, README_FILE_LENGTH, @"Readme file length");
 	
 	[zip2 release];
+}
+
+- (void) testOpeningLotsOfZips {
+	// TODO: open multiple zip files, read from multiple files
 }
 
 - (void) testFscanfReading {
