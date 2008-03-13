@@ -33,7 +33,7 @@
 	@copyright	Joris Kluivers
 */
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 
 #import "ZipStructure.h"
 
