@@ -168,6 +168,9 @@ void readLocalFileHeader(FileHeader *header, FILE *fp) {
 	fseek(fp, header->extra_len, SEEK_CUR); // ignore extra field
 }
 
+
+#pragma mark -
+#pragma mark File reading (funopen) delegates
 int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	return [((ZipEntryInfo *)cookie)->archive readFromEntry:(ZipEntryInfo *)cookie buffer:buf length:len];
 }
@@ -175,6 +178,8 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 int ZipArchive_entry_do_close(void *cookie) {
 	return [((ZipEntryInfo *)cookie)->archive closeEntry:(ZipEntryInfo *)cookie];
 }
+
+#pragma mark -
 
 @implementation ZipArchive
 + (id) archiveWithFile:(NSString *)location {
