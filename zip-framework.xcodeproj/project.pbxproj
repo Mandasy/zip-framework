@@ -16,6 +16,7 @@
 		A95FC4260BB5D488006328A2 /* ZipArchiveTest.m in Sources */ = {isa = PBXBuildFile; fileRef = A95FC4250BB5D488006328A2 /* ZipArchiveTest.m */; };
 		A95FC43E0BB5DA26006328A2 /* test-archive1.zip in Resources */ = {isa = PBXBuildFile; fileRef = A95FC43D0BB5DA1A006328A2 /* test-archive1.zip */; };
 		A95FC44C0BB5DB5D006328A2 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A95FC44B0BB5DB5D006328A2 /* SenTestingKit.framework */; };
+		A9C868530D898C45003B2E5C /* ZipFramework-0.1-src.zip in Resources */ = {isa = PBXBuildFile; fileRef = A9C868520D898C45003B2E5C /* ZipFramework-0.1-src.zip */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +48,7 @@
 		A95FC43D0BB5DA1A006328A2 /* test-archive1.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "test-archive1.zip"; sourceTree = "<group>"; };
 		A95FC44B0BB5DB5D006328A2 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = /System/Library/Frameworks/SenTestingKit.framework; sourceTree = "<absolute>"; };
 		A95FC4AB0BB5EC48006328A2 /* COPYING */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = COPYING; sourceTree = "<group>"; };
+		A9C868520D898C45003B2E5C /* ZipFramework-0.1-src.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "ZipFramework-0.1-src.zip"; sourceTree = "<group>"; };
 		D2F7E79907B2D74100F64583 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
@@ -166,6 +168,7 @@
 		A95FC4380BB5D98D006328A2 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				A9C868520D898C45003B2E5C /* ZipFramework-0.1-src.zip */,
 				A95FC43D0BB5DA1A006328A2 /* test-archive1.zip */,
 			);
 			path = Tests;
@@ -230,6 +233,7 @@
 		0867D690FE84028FC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = 1DEB91B108733DA50010E9CD /* Build configuration list for PBXProject "zip-framework" */;
+			compatibilityVersion = "Xcode 2.4";
 			hasScannedForEncodings = 1;
 			mainGroup = 0867D691FE84028FC02AAC07 /* zip-framework */;
 			productRefGroup = 034768DFFF38A50411DB9C8B /* Products */;
@@ -255,6 +259,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9C868530D898C45003B2E5C /* ZipFramework-0.1-src.zip in Resources */,
 				A95FC43E0BB5DA26006328A2 /* test-archive1.zip in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -230,7 +230,47 @@
 }
 
 - (void) testOpeningLotsOfZips {
-	// TODO: open multiple zip files, read from multiple files
+	int i, j;
+	NSArray *archives = [NSArray arrayWithObjects:@"test-archive1", @"ZipFramework-0.1-src", nil];
+	NSString *archiveName;
+	NSString *archivePath;
+	NSMutableArray *archiveCollection = [[NSMutableArray alloc] init];
+	
+	for (i=0; i<[archives count]; i++) {
+		archiveName = [archives objectAtIndex:i];
+		archivePath = [[NSBundle bundleForClass:[self class]] pathForResource:archiveName ofType:@"zip"];
+		
+		ZipArchive *archive;
+		for (j=0; j<100; j++) {
+			// also tests autoreleased object
+			archive = [ZipArchive archiveWithFile:archivePath];
+			STAssertNotNil(archive, @"Creating archive failed");
+			
+			[archiveCollection addObject:archive];
+		}
+	}
+	
+	STAssertEquals([archiveCollection count], [archives count] * 100, @"Number of zip archives created");
+	
+	NSEnumerator *files;
+	ZipArchive *archive;
+	NSString *fileInZip;
+	FILE *fileInZipStream;
+	for (i=0; i<[archiveCollection count]; i++) {
+		archive = (ZipArchive *) [archiveCollection objectAtIndex:i];
+		files = [[archive entries] objectEnumerator];
+		
+		while (fileInZip = (NSString *) [files nextObject]) {
+			fileInZipStream = [archive entryNamed:fileInZip];
+			
+			if (fileInZipStream != NULL) {
+				j = fclose(fileInZipStream);
+				STAssertEquals(j, 0, @"Closing file stream of: %@", fileInZip);
+			}
+		}
+	}
+	
+	[archiveCollection release];
 }
 
 - (void) testFscanfReading {
