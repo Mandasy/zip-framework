@@ -83,18 +83,12 @@
 	STAssertEquals([filesInTest count], (unsigned)0, @"All files should be encountered when requesting entry info");
 }
 
-/*- (void) testZipEntryInfoShorthand {
-	NSDictionary *info = [zip infoForEntry:@"test-archive/README"];
-	
-	STAssertEqualObjects([info objectForKey:@"ZipEntryName"], @"test-archive/README", @"Entry name");
-	STAssertEqualObjects([info objectForKey:@"ZipEntryUncompressedSize"], [NSNumber numberWithInt:64], @"Uncompressed entry size");
-}*/
-
 - (void) testSmallZipEntryReading {
 	/* Read from readme file. File uncompressed size is 64 bytes */
 	char file_contents[README_FILE_LENGTH + 1] = "README\n------\n\nThis archive is used to test the JKZip.framework.";
 	FILE *readmeFile;
 	char buf[513];
+	int res;
 	
 	STAssertNil((id)[zip entryNamed:@"non-exising/file.txt"], @"Requesting a non-existing file");
 	
@@ -109,6 +103,9 @@
 	
 	int cmp = strncmp((const char *)buf, (const char *)file_contents, README_FILE_LENGTH);
 	STAssertEquals(cmp, 0, @"Filecontents do not match");
+	
+	res = fclose(readmeFile);
+	STAssertEquals(res, 0, @"Succesful file close");
 }
 
 - (void) testLargeZipEntryReading {

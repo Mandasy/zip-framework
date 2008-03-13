@@ -172,6 +172,10 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	return [((ZipEntryInfo *)cookie)->archive readFromEntry:(ZipEntryInfo *)cookie buffer:buf length:len];
 }
 
+int ZipArchive_entry_do_close(void *cookie) {
+	return [((ZipEntryInfo *)cookie)->archive closeEntry:(ZipEntryInfo *)cookie];
+}
+
 @implementation ZipArchive
 + (id) archiveWithFile:(NSString *)location {
 	return [[[ZipArchive alloc] initWithFile:location] autorelease];
@@ -267,7 +271,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	entry_io->stream->next_in = Z_NULL;
 	entry_io->stream->avail_in = 0;
 	
-	/* initialize zlib stream */
+	/* initialize zlib stream, read header */
 	int result = inflateInit2(entry_io->stream, -15);
 	if (result != Z_OK) {
 		// TODO: free entry_io & stream
@@ -276,9 +280,12 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	}
 	
 	// TODO: setup fclose handler
-	return fropen(
+	return funopen(
 		(void *)entry_io, 
-		ZipArchive_entry_do_read
+		ZipArchive_entry_do_read,
+		NULL,
+		NULL,
+		ZipArchive_entry_do_close
 	);
 }
 
@@ -363,8 +370,22 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len) {
 	return len_out - entry_io->stream->avail_out;
 }
 
-- (void) closeEntry:(ZipEntryInfo *)entry_io {
-	// TODO: close entry_io->stream
+- (int) closeEntry:(ZipEntryInfo *)entry_io {
+	int close_status = 0; // EOF for failure, see man fclose
+
+	entry_io->archive = nil; // weak reference
+
+	if (fclose(entry_io->fp) != 0) {
+		close_status = EOF;
+	}
+
+	if (inflateEnd(entry_io->stream) != Z_OK) {
+		close_status = EOF;
+	}
+	
+	free(entry_io);
+	
+	return close_status;
 }
 
 - (CDFileHeader *) CDFileHeaderForFile:(NSString *)fileName {

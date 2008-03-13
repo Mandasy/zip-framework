@@ -66,6 +66,7 @@ int ZipArchive_entry_do_read(void *cookie, char *buf, int len);
  * of bytes form the requested file in the ZipArchive.
  */
 - (int) readFromEntry:(ZipEntryInfo *)entry_io buffer:(char *)buf length:(int)length;
+- (int) closeEntry:(ZipEntryInfo *)entry_io;
 
 - (void) readCentralDirectory;
 - (CDFileHeader *) CDFileHeaderForFile:(NSString *)name;
