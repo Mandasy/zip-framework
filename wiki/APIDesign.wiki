@@ -16,7 +16,7 @@ if (!zip) {
 
 FILE *fp = [zip entryNamed:@"README.txt"]; // open stream to file README.txt in archive
 if (!fp) {
-    NSLog(@"File does not exist in archive");
+    NSLog(@"Not a file or not available in the archive");
 }
 
 NSArray *allEntries = [zip entries];
