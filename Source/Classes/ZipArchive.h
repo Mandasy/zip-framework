@@ -54,7 +54,16 @@
 	@functiongroup	Creating ZipArchive objects
 */
 
+/*!
+	@method	archiveWithFile
+	@abstract	An autoreleased version of the result returned by initWithFile
+*/
 + (id) archiveWithFile:(NSString *)location;
+
+/*!
+	@method initWithFile
+	@result A ZipArchive or nil if file doesn't exist or is not readable
+*/
 - (id) initWithFile:(NSString *)location;
 
 /*!

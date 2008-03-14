@@ -192,7 +192,10 @@ int ZipArchive_entry_do_close(void *cookie) {
 		return nil;
 	}
 	
-	// TODO: add test for "is readable file"
+	// check if file is readable
+	if (![[NSFileManager defaultManager] isReadableFileAtPath:location]) {
+		return nil;
+	}
 
 	self = [super init];
 	
