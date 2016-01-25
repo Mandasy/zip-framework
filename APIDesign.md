@@ -1,0 +1,28 @@
+# API Design #
+
+The Zip framework doesn't work yet, but ideally reading files from zip archives would be accomplished with only a few lines of code:
+
+```
+#import <stdio.h>
+#import <Zip/ZipArchive.h>
+
+ZipArchive *zip = [[ZipArchive alloc] initWithFile:@"..."];
+if (!zip) {
+    NSLog(@"File could not be opened");
+}
+
+FILE *fp = [zip entryNamed:@"README.txt"]; // open stream to file README.txt in archive
+if (!fp) {
+    NSLog(@"Not a file or not available in the archive");
+}
+
+NSArray *allEntries = [zip entries];
+// for example: [@"README", @"COPYING", @"src/", @"src/main.c"]
+
+[zip release];
+
+// Autoreleased version
+ZipArchive *autoreleasedZip = [ZipArchive archiveWithFile:@"..."];
+```
+
+Please enter code examples on how you would want to use this framework in the comments below.

@@ -1,0 +1,3 @@
+Zip.framework is a cocoa framework for easy zip file listing, reading and writing. The main purpose of this framework is to prevent you from having to use command line utilities in your application by providing a native Cocoa interface.
+
+According to the [changeset](http://www.stepwise.com/Articles/FirstImpressions/MacOSXServer1.2/DeveloperLibs.pkg-files.html) hosted on stepwise.com a Zip.framework was included with Mac OS X Server 1.2. This framework is not available anymore. The zip-framework project does not try to copy the Zip.framework API and cannot be used as a drop in replacement.

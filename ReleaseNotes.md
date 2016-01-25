@@ -1,0 +1,12 @@
+# Version 0.1 #
+
+Initial release of the Zip.framework. The single interface in the framework (ZipArchive) enables you to read directly from a file in a zip archive without using a NSTask.
+
+```
+# Checkout the sourcecode for the Xcode project for this release using:
+svn checkout http://zip-framework.googlecode.com/svn/tags/version-0.1 zip-framework
+```
+
+## Convenience downloads ##
+  * [ZipFramework-0.1.zip](http://zip-framework.googlecode.com/files/ZipFramework-0.1.zip)
+  * [ZipFramework-0.1-src.zip](http://zip-framework.googlecode.com/files/ZipFramework-0.1-src.zip)

@@ -1,0 +1,9 @@
+# File pointer operations #
+
+A file pointer to a file in the Zip archive can be obtained using:
+```
+ZipArchive *zip = [[ZipArchive alloc] initWithFile:@"..."];
+FILE *fp = [zip entryNamed:@"..."];
+```
+
+Currently the only operation supported on this file is fread. If you experience any problems let me know and I'll try to fix it. Behaviour of other operations like rewind, fwrite, etc. is not defined, it's not recommended you use these functions.
